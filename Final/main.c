@@ -35,6 +35,8 @@ void FLAT_FAR eat_apple(void);
 void FLAT_FAR do_nothing(void);
 void FLAT_FAR clearBuffer(char * buf);
 void FLAT_FAR display_menu(void);
+void FLAT_FAR draw_start(char * buf);
+void FLAT_FAR draw_death(char * buf);
 
 static volatile char go = 0;
 static volatile char time_ov = 0;
@@ -295,6 +297,16 @@ void FLAT_FAR draw(char * buf)
    {
       buf[BUF_POS(trap_pos[j])] = VIOLET;
    }
+}
+
+void FLAT_FAR draw_start(char * buf)
+{
+
+}
+
+void FLAT_FAR draw_death(char * buf)
+{
+
 }
 
 /*
