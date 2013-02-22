@@ -8,8 +8,8 @@
 #ifndef __VGA_H
 #define __VGA_H
 
-#define     HEIGHT               60
-#define     WIDTH                80
+#define     HEIGHT               60U
+#define     WIDTH                80U
 #define     BUF_LEN              (HEIGHT * WIDTH)
 
 

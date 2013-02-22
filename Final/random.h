@@ -10,6 +10,7 @@
 #include "hcs12.h"
 
 void FLAT_FAR seedRand(unsigned int s);
-int FLAT_FAR rand(void);
+unsigned int FLAT_FAR rand(void);
+void FLAT_FAR set_max_rand(unsigned int max);
 
 #endif

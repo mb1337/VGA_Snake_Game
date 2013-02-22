@@ -8,7 +8,9 @@
 // ---------------------------------------------------------------------------------
 #include "hcs12.h"
 #include "delay.h"
-#define  LCD_DAT  PORTK       // Port K drives LCD data pins, E, and RS
+#include "lcd_util.h"
+
+#define  LCD_DAT  PORTK     // Port K drives LCD data pins, E, and RS
 #define  LCD_DIR  DDRK      // Direction of LCD port
 #define  LCD_E    0x02      // E signal
 #define  LCD_RS   0x01      // RS signal
@@ -44,8 +46,7 @@ void openLCD(void)
      cmd2LCD(0x28);        /* set 4-bit data, 2-line display, 5x7 font */
      cmd2LCD(0x0C);        /* turn on display, cursor, blinking */
      cmd2LCD(0x06);        /* move cursor right */
-     cmd2LCD(0x01);        /* clear screen, move cursor to home */
-     delayby1ms(2);        /* wait until "clear display" command is complete */
+     clearLCD();
 }
 void putcLCD(char cx)
 {

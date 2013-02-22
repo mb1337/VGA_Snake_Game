@@ -13,23 +13,12 @@
 #include "lcd_util.h"
 #include "random.h"
 #include "speaker.h"
-
-#define BLACK  0x00
-#define D_GRAY 0x15
-#define L_GRAY 0x2A
-#define RED    0x03
-#define GREEN  0x0C
-#define YELLOW (RED|GREEN)
-#define BLUE   0x30
-#define NAVY   0x10
-#define VIOLET (BLUE|RED)
-#define CYAN   (BLUE|GREEN)
-#define WHITE  0x3C
+#include "colors.h"
 
 #define MAX_LEN      256
 #define MAX_TRAPS    256
-#define START_LEN    5
-#define START_TRAPS  10
+#define START_LEN    8
+#define START_TRAPS  16
 
 void INTERRUPT video_isr(void);
 void INTERRUPT timer_isr(void);
@@ -42,7 +31,10 @@ void FLAT_FAR place_trap(void);
 void FLAT_FAR check_collisions(void);
 void FLAT_FAR restart(void);
 void FLAT_FAR die(void);
+void FLAT_FAR eat_apple(void);
+void FLAT_FAR do_nothing(void);
 void FLAT_FAR clearBuffer(char * buf);
+void FLAT_FAR display_menu(void);
 
 static volatile char go = 0;
 static volatile char time_ov = 0;
@@ -56,8 +48,14 @@ static char traps = 0;
  */
 struct position_s
 {
-   int x,y;
+   unsigned char x,y;
 } typedef position_t;
+
+/*
+ * position macros
+ */
+#define BUF_POS(pos)    ((((unsigned int)(pos).y) * WIDTH) + (pos).x)
+#define EQUALS(p1,p2)   (((p1).x == (p2).x) && ((p1).y == (p2).y))
 
 char FLAT_FAR collides(position_t p);
 void FLAT_FAR find_position(position_t * p);
@@ -79,6 +77,7 @@ int main(void)
 {
    int i,toggle = 0;
    initInput(&btnPress);
+   set_max_rand(BUF_LEN);
    openLCD();
    clearBuffer(vid_bufA);
    restart();
@@ -128,6 +127,15 @@ int main(void)
    return 0;
 }
 
+void FLAT_FAR display_menu(void)
+{
+   clearLCD();
+   putsLCD("VGA Snake Game");
+   newlineLCD();
+   delayby10ms(1);
+   putsLCD("Press <- to start");
+}
+
 /*
  * Restarts world back to start state
  */
@@ -145,9 +153,7 @@ void FLAT_FAR restart(void)
       pos[i].x = 20 + i;
       pos[i].y = 15;
    }
-   cmd2LCD(0x01);
-   delayby100ms(1);
-   putsLCD("Score: 0");
+
    resetDirection(LEFT);
 }
 
@@ -208,34 +214,18 @@ void FLAT_FAR update_pos(void)
  */
 void FLAT_FAR check_collisions(void)
 {
-   if (pos[start].x == apple_pos.x && pos[start].y == apple_pos.y)
+
+   switch(collides(pos[start]))
    {
-      char pnt[8];
-      len += 2;
-      place_trap();
-      place_trap();
-      place_apple();
-      points++;
-      int2alpha(points,pnt);
-      cmd2LCD(0x01);
-      playPointSound();
-      delayby10ms(5);
-      putsLCD("Score: ");
-      putsLCD(pnt);
-      stopSound();
-   }
-   else
-   {
-      if(collides(pos[start]))
-      {
-         die();
-      }
-      else
-      {
-         playGameSound();
-         delayby10ms(5);
-         stopSound();
-      }
+   case 0:
+      do_nothing();
+      break;
+   case 1:
+      eat_apple();
+      break;
+   case 2:
+      die();
+      break;
    }
 }
 
@@ -249,6 +239,30 @@ void FLAT_FAR die(void)
    delayby10ms(2);
    putsLCD("You Lose!");
    go = 0;
+}
+
+void FLAT_FAR eat_apple(void)
+{
+   char pnt[8];
+   len += 2;
+   place_trap();
+   place_trap();
+   place_apple();
+   points++;
+   int2alpha(points,pnt);
+   cmd2LCD(0x01);
+   playPointSound();
+   delayby10ms(5);
+   putsLCD("Score: ");
+   putsLCD(pnt);
+   stopSound();
+}
+
+void FLAT_FAR do_nothing(void)
+{
+   playGameSound();
+   delayby10ms(5);
+   stopSound();
 }
 
 /*
@@ -271,15 +285,15 @@ void FLAT_FAR draw(char * buf)
 {
    int j,k;
    clearBuffer(buf);
-   buf[(apple_pos.y * WIDTH) + apple_pos.x] = RED;
+   buf[BUF_POS(apple_pos)] = RED;
    for(j = 0,k = start; j < len; j++)
    {
-      buf[(pos[k].y * WIDTH) + pos[k].x] = GREEN;
+      buf[BUF_POS(pos[k])] = GREEN;
       k = (k + 1) % MAX_LEN;
    }
    for(j = 0; j < traps; j++)
    {
-      buf[(trap_pos[j].y * WIDTH) + trap_pos[j].x] = VIOLET;
+      buf[BUF_POS(trap_pos[j])] = VIOLET;
    }
 }
 
@@ -322,22 +336,25 @@ void FLAT_FAR place_trap(void)
 
 /*
  * Checks to see if p collides with anything on the map
+ * 0 -- No collision
+ * 1 -- Apple
+ * 2 -- Deadly Object
  */
 char FLAT_FAR collides(position_t p)
 {
    int j,k;
-   if(p.x == apple_pos.x && p.y == apple_pos.y)
+   if(EQUALS(p,apple_pos))
       return 1;
    for(j = 1,k = (start + 1) % MAX_LEN; j < len; j++)
    {
-      if(pos[k].x == p.x && pos[k].y == p.y)
-         return 1;
+      if(EQUALS(p,pos[k]))
+         return 2;
       k = (k + 1) % MAX_LEN;
    }
    for(j = 0; j < traps; j++)
    {
-      if(trap_pos[j].x == p.x && trap_pos[j].y == p.y)
-         return 1;
+      if(EQUALS(p,trap_pos[j]))
+         return 2;
    }
    return 0;
 }
