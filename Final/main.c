@@ -26,8 +26,8 @@
 #define CYAN   (BLUE|GREEN)
 #define WHITE  0x3C
 
-#define MAX_LEN      128
-#define MAX_TRAPS    128
+#define MAX_LEN      256
+#define MAX_TRAPS    256
 #define START_LEN    5
 #define START_TRAPS  10
 
@@ -69,19 +69,18 @@ static int start = 0;
 
 static position_t apple_pos = {-1,-1};
 
+static char vid_bufA[BUF_LEN] = {0};
+static char vid_bufB[BUF_LEN] = {0};
+
 /*
  * Snake Game main loop
  */
 int main(void)
 {
-   char *bufferA_ptr, *bufferB_ptr;
    int i,toggle = 0;
    initInput(&btnPress);
    openLCD();
-   bufferA_ptr = (char*)&bufferA;
-   bufferB_ptr = (char*)&bufferB;
-   clearBuffer(bufferA_ptr);
-   SET_VID_POINTER((unsigned short)bufferA_ptr);
+   clearBuffer(vid_bufA);
    restart();
    initTimer();
    video_enable();
@@ -112,13 +111,13 @@ int main(void)
        */
       if(toggle)
       {
-         SET_VID_POINTER((unsigned short)bufferB_ptr);
-         draw(bufferA_ptr);
+         set_vid_ptr(vid_bufB);
+         draw(vid_bufA);
       }
       else
       {
-         SET_VID_POINTER((unsigned short)bufferA_ptr);
-         draw(bufferB_ptr);
+         set_vid_ptr(vid_bufA);
+         draw(vid_bufB);
       }
 
       toggle = !toggle;

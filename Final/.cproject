@@ -21,8 +21,8 @@
 							<builder id="org.eclipse.cdt.build.core.settings.default.builder.1801087136" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.libs.1331427997" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1163092741" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1280160966" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/doc/hcs12_workspace/include"/>
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1280160966" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="../../include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.33909410" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
@@ -31,7 +31,7 @@
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1280994545" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.683489804" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/doc/hcs12_workspace/include"/>
+									<listOptionValue builtIn="false" value="../../include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.2116292058" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>

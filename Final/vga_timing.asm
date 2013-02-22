@@ -5,13 +5,13 @@
  *      Author: Matthew Borneman
  */
 
-.include "hcs12.inc"
+.include "../include/hcs12.inc"
 
 .global video_draw
 
 ; ----------- VIDEO VARIABLES ----------
-.equ vid_pointer,0x1960
-.equ vid_blanks,0x1962
+.extern vid_ptr
+.extern vid_blanks
 
 ; ---------- DELAY MACROS ----------
      ; waste 2 cycles
@@ -68,11 +68,11 @@
    ; writes a pixel color to PORTA
    video_1:  macro
               inx             ; increment X    (1 cycle)
-              jsr nop10       ; waste time     (10 cycles)
+              nop2            ; waste time     (2 cycles)
               movb 0,X, PORTA ; write to pins  (5 cycles)
               endm
 
-   video_9:  macro          ; 16x9 => 144 cycles
+   video_9:  macro          ; 8x9 => 72 cycles
               video_1
               video_1
               video_1
@@ -84,16 +84,16 @@
               video_1
               endm
 
-   video_10: macro         ; 16x10 => 160 cycles
+   video_10: macro         ; 8x10 => 80 cycles
               video_9
               video_1
               endm
 
 
 ; video drawing routine
-; PT0 = HSYNC
-; PT1 = VSYNC
-; PORTA = COLOR
+; PJ0 = HSYNC
+; PJ1 = VSYNC
+; PORTA = RGB
 video_draw:
            ; *****************************************************
            ; *    ATTENTION: This function is timing-critical    *
@@ -146,7 +146,7 @@ video_draw:
  start_active:
             ; prepare for active video section  (3 cycles) <- BRANCHED
             nop
-            ldx  vid_pointer ; video_pointer    (3 cycles)
+            ldx  vid_ptr   ; video_pointer    (3 cycles)
             clra           ; V repeat counter   (1 cycle)
             clrb           ; V rows counter     (1 cycle)
             nop            ; burn time          (1 cycle)
@@ -176,12 +176,16 @@ video_draw:
             movb 0,X, PORTA ; write first pixel (5 cycles)
 
             ; ----- HORIZONTAL ACTIVE VIDEO = 640 cycles -----
-            video_10  ; video to screen     (160 cycles)
-            video_10  ; video to screen     (160 cycles)
-            video_10  ; video to screen     (160 cycles)
-            video_9   ; video to screen     (144 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_10  ; video to screen     (80 cycles)
+            video_9   ; video to screen     (72 cycles)
             inx       ; increment for next  (1 cycle)
-            jsr nop10 ; burn time           (10 cycle)
+            nop2      ; burn time           (2 cycle)
             nop2      ; burn time           (2 cycle)
             clr PORTA ; blacken video       (3 cycles)
 
@@ -190,10 +194,10 @@ video_draw:
             ; elsif B=15    => A++, B=0
             ; else          => B++, X=X-40
 
-            cmpb #15 ; compare B with 15 (1 cycle)
-            beq done_reps ; branch if B = 15
+            cmpb #7 ; compare B with 7 (1 cycle)
+            beq done_reps ; branch if B = 7
 
-            ; (B!=15)
+            ; (B!=7)
             ; more repeats to go         (1 cycle) <- NOT BRANCHED
             incb      ; inc repeat count (1 cycle)
             tfr Y, X  ; start line again (1 cycle)
@@ -205,12 +209,12 @@ video_draw:
             lbra a_hs_pulse ; go repeat row
             ; TOTAL=(1)+(1+1+1+2+2+2+4)=16
 
- done_reps: ; (B=15)                      (3 cycles) <- BRANCHED
+ done_reps: ; (B=7)                      (3 cycles) <- BRANCHED
             clrb     ; clear B            (1 cycle)
-            cmpa #29 ; compare A with 29  (1 cycle)
-            beq done_rows ; branch if A = 29
+            cmpa #59 ; compare A with 59  (1 cycle)
+            beq done_rows ; branch if A = 59
 
-            ; (B=15) && (A!=0)
+            ; (B=7) && (A!=0)
             ; move to next line           (1 cycle) <- NOT BRANCHED
             inca       ; inc line count   (1 cycle)
             nop2       ;                  (2 cycles)
@@ -219,7 +223,7 @@ video_draw:
             lbra a_hs_pulse ; go new line
             ; TOTAL=(1)+(3+1+1)+(1+1+2+2+4)=16
 
-            ; (B=15) && (A=29)            (3 cycle) <- BRANCHED
+            ; (B=7) && (A=59)            (3 cycle) <- BRANCHED
  done_rows: nop2        ; burn time       (2 cycles)
             nop         ; burn time       (1 cycles)
             bclr PTJ,0x01 ; lower HS      (4 cycles)

@@ -19,5 +19,6 @@ $(OBJS): %.o: %.c
 	$(CC) $(CFLAGS) -I$(INCDIR) -c $<
 
 clean:
-	$(RM) -rf $(OBJS);
+	$(RM) -f *~
+	$(RM) -f *.o
 	$(CLS)
