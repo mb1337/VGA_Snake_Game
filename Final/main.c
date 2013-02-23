@@ -14,6 +14,7 @@
 #include "random.h"
 #include "speaker.h"
 #include "colors.h"
+#include "screens.h"
 
 #define MAX_LEN      256
 #define MAX_TRAPS    256
@@ -35,8 +36,7 @@ void FLAT_FAR eat_apple(void);
 void FLAT_FAR do_nothing(void);
 void FLAT_FAR clearBuffer(char * buf);
 void FLAT_FAR display_menu(void);
-void FLAT_FAR draw_start(char * buf);
-void FLAT_FAR draw_death(char * buf);
+void FLAT_FAR draw_screen(char * buf, const char * bits);
 
 static volatile char go = 0;
 static volatile char time_ov = 0;
@@ -81,7 +81,8 @@ int main(void)
    initInput(&btnPress);
    set_max_rand(BUF_LEN);
    openLCD();
-   clearBuffer(vid_bufA);
+   set_vid_ptr(vid_bufA);
+   draw_screen(vid_bufA,title_bits);
    restart();
    initTimer();
    video_enable();
@@ -96,6 +97,8 @@ int main(void)
    {
       if(go == 0) // Restart Game
       {
+         set_vid_ptr(vid_bufA);
+         draw_screen(vid_bufA,game_over_bits);
          while(!go);
          restart();
          place_apple();
@@ -299,14 +302,15 @@ void FLAT_FAR draw(char * buf)
    }
 }
 
-void FLAT_FAR draw_start(char * buf)
+void FLAT_FAR draw_screen(char * buf, const char * bits)
 {
-
-}
-
-void FLAT_FAR draw_death(char * buf)
-{
-
+   int i;
+   unsigned char mask = 0x01;
+   for(i = 0; i < BUF_LEN; i++)
+   {
+      buf[i] = (bits[i>>3] & mask) ? BLACK : WHITE;
+      mask = (mask<<1) ? (mask<<1) : 0x01;
+   }
 }
 
 /*
