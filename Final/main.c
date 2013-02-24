@@ -15,6 +15,7 @@
 #include "speaker.h"
 #include "colors.h"
 #include "screens.h"
+#include "chars.h"
 
 #define MAX_LEN      256
 #define MAX_TRAPS    256
@@ -37,6 +38,8 @@ void FLAT_FAR do_nothing(void);
 void FLAT_FAR clearBuffer(char * buf);
 void FLAT_FAR display_menu(void);
 void FLAT_FAR draw_screen(char * buf, const char * bits);
+void FLAT_FAR print_string(const char * str, char * buf, int row, char color);
+
 
 static volatile char go = 0;
 static volatile char time_ov = 0;
@@ -52,6 +55,8 @@ struct position_s
 {
    unsigned char x,y;
 } typedef position_t;
+
+void FLAT_FAR draw_char(char * buf, char c, char color, position_t p);
 
 /*
  * position macros
@@ -130,6 +135,53 @@ int main(void)
       time_ov = 0;          // for a ~220ms loop period
    }
    return 0;
+}
+
+void FLAT_FAR print_string(const char * str, char * buf, int row, char color)
+{
+   int col = 0;
+   while(*str)
+   {
+      char c = *str++;
+      if(c == '\n')
+      {
+         col = 0;
+         row++;
+      }
+      else if(c == '\t')
+      {
+         col += 3;
+      }
+      else
+      {
+         position_t p;
+         p.x = (col << 3) + 1;
+         p.y = (row << 3) + 1;
+         draw_char(buf,c,color,p);
+         col++;
+      }
+   }
+}
+
+void FLAT_FAR draw_char(char * buf, char c, char color, position_t p)
+{
+   const unsigned char * bits = get_char_bits(c);
+   int pos = BUF_POS(p);
+   unsigned char i,j;
+   if(!bits)
+      return;
+   for(i = 0; i < CHAR_HEIGHT; i++)
+   {
+      int t_pos = pos;
+      unsigned char mask = 0x01;
+      for(j = 0; j < CHAR_WIDTH; j++)
+      {
+         buf[pos++] = (bits[i] & mask) ? color : BLACK;
+         mask <<= 1;
+      }
+      pos = t_pos + WIDTH;
+   }
+
 }
 
 void FLAT_FAR display_menu(void)
@@ -304,11 +356,11 @@ void FLAT_FAR draw(char * buf)
 
 void FLAT_FAR draw_screen(char * buf, const char * bits)
 {
-   int i;
+   unsigned int i;
    unsigned char mask = 0x01;
    for(i = 0; i < BUF_LEN; i++)
    {
-      buf[i] = (bits[i>>3] & mask) ? BLACK : WHITE;
+      buf[i] = (bits[i>>3] & mask) ? BLACK : GREEN;
       mask = (mask<<1) ? (mask<<1) : 0x01;
    }
 }

@@ -1,4 +1,4 @@
-CFILES=main.c vga.c input.c random.c interrupts.c speaker.c startup.c
+CFILES=main.c vga.c input.c random.c interrupts.c speaker.c startup.c chars.c
 SFILES=vga_timing.asm delay.asm
 
 OC = m68hc12-objcopy
