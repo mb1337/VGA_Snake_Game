@@ -12,6 +12,7 @@ LDFLAGS = -m68hc12 -mshort -mlong-calls -Wl,-T,ld.x
 OCFLAGS = --srec-len=0x20 --change-addresses 0xffff0000
 INCDIR = ../include
 LIBDIR = ../lib
+LIBS = ../lib/lcdUtilDragon12.o ../lib/convert.o #../lib/stdio.o
 
 SOBJS   =	$(SFILES:.asm=.o)
 COBJS   =	$(CFILES:.c=.o)
@@ -27,7 +28,7 @@ all:	000.elf 000.s19
 	$(AS) $(ASFLAGS) $< -o $@
 
 000.elf:	$(OBJS)
-	$(CC) $(LDFLAGS) -o 000.elf $(OBJS) ../lib/lcdUtilDragon12.o ../lib/convert.o #../lib/stdio.o 
+	$(CC) $(LDFLAGS) -o 000.elf $(OBJS) $(LIBS)
 
 000.s19:	000.elf
 	$(OC) --output-target=srec $(OCFLAGS) 000.elf 000.s19 
